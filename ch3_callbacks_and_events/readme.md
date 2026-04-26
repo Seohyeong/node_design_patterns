@@ -1,3 +1,5 @@
+# Chapter 3: Callbacks and Events
+
 # 1. The Callback pattern
 
 ## 1) Callback
