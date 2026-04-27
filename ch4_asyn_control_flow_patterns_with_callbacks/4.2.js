@@ -6,9 +6,8 @@ iterates over all the subdirectories to eventually return a list of all the file
 
 import { readdir, stat } from "node:fs";
 
-function listNestedFiles (dir, cb) {
+function listNestedFiles(dir, cb) {
     const output = []
-
     readdir(dir, (err, entries) => {
         if (err) {
             return cb(err)
@@ -20,26 +19,35 @@ function listNestedFiles (dir, cb) {
             }
             const entry = entries[index]
             const fullPath = dir + '/' + entry
-            stat(fullPath, (err, stats) => {
+            visitEntry(fullPath, (err, files) => {
                 if (err) {
                     return cb(err)
                 }
-                if (stats.isFile()) {
-                    output.push(fullPath)
-                    iterate(index + 1)
-                }
-                if (stats.isDirectory()) {
-                    listNestedFiles(fullPath, (err, childFiles) => {
-                        if (err) {
-                            return cb(err)
-                        }
-                        output.push(...childFiles)
-                        iterate(index + 1)
-                    })
-                }
+                output.push(...files)
+                iterate(index + 1)
             })
         }
 
         iterate(0)
     })
+}
+
+function visitEntry(fullPath, cb) {
+    stat(fullPath, (err, stats) => {
+        if (err) {
+            return cb(err)
+        }
+        if (stats.isFile()) {
+            cb(null, [fullPath])
+        }
+        if (stats.isDirectory()) {
+            listNestedFiles(fullPath, (err, childFiles) => {
+                if (err) {
+                    return cb(err)
+                }
+                cb(null, childFiles)
+            })
+        }
+    })
+
 }
